@@ -1,0 +1,113 @@
+File	Measure	Value
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	Filename	1infected_CGAGGCTG-AAGGAGTA_L001_R1_001.fastq.gz
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	File type	Conventional base calls
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	Total Sequences	20786262
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	Sequence length	45
+./1infected_CGAGGCTG-AAGGAGTA_L001_R1_001_fastqc	%GC	57
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	Filename	9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001.fastq.gz
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	File type	Conventional base calls
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	Total Sequences	21389138
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	Sequence length	45
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R2_001_fastqc	%GC	57
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	Filename	14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001.fastq.gz
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	File type	Conventional base calls
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	Total Sequences	18570711
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	Sequence length	45
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R1_001_fastqc	%GC	58
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	Filename	7infected_AAGAGGCA-CTCTCTAT_L001_R1_001.fastq.gz
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	File type	Conventional base calls
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	Total Sequences	17851309
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	Sequence length	45
+./7infected_AAGAGGCA-CTCTCTAT_L001_R1_001_fastqc	%GC	56
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	Filename	11infected_CGAGGCTG-GCGTAAGA_L001_R2_001.fastq.gz
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	File type	Conventional base calls
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	Total Sequences	18168440
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	Sequence length	45
+./11infected_CGAGGCTG-GCGTAAGA_L001_R2_001_fastqc	%GC	58
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	Filename	5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001.fastq.gz
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	File type	Conventional base calls
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	Total Sequences	18709626
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	Sequence length	45
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R2_001_fastqc	%GC	56
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	Filename	11infected_CGAGGCTG-GCGTAAGA_L001_R1_001.fastq.gz
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	File type	Conventional base calls
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	Total Sequences	18168440
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	Sequence length	45
+./11infected_CGAGGCTG-GCGTAAGA_L001_R1_001_fastqc	%GC	58
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	Filename	10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001.fastq.gz
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	File type	Conventional base calls
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	Total Sequences	20974103
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	Sequence length	45
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R1_001_fastqc	%GC	56
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	Filename	9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001.fastq.gz
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	File type	Conventional base calls
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	Total Sequences	21389138
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	Sequence length	45
+./9uninfected_GTAGAGGA-AAGGAGTA_L001_R1_001_fastqc	%GC	56
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	Filename	1infected_CGAGGCTG-AAGGAGTA_L001_R2_001.fastq.gz
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	File type	Conventional base calls
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	Total Sequences	20786262
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	Sequence length	45
+./1infected_CGAGGCTG-AAGGAGTA_L001_R2_001_fastqc	%GC	57
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	Filename	14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001.fastq.gz
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	File type	Conventional base calls
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	Total Sequences	18570711
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	Sequence length	45
+./14uninfected_CGAGGCTG-CTCTCTAT_L001_R2_001_fastqc	%GC	58
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	Filename	5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001.fastq.gz
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	File type	Conventional base calls
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	Total Sequences	18709626
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	Sequence length	45
+./5uninfected_AAGAGGCA-GCGTAAGA_L001_R1_001_fastqc	%GC	56
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	Filename	7infected_AAGAGGCA-CTCTCTAT_L001_R2_001.fastq.gz
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	File type	Conventional base calls
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	Total Sequences	17851309
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	Sequence length	45
+./7infected_AAGAGGCA-CTCTCTAT_L001_R2_001_fastqc	%GC	56
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	Filename	2infected_CGAGGCTG-CTAAGCCT_L001_R2_001.fastq.gz
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	File type	Conventional base calls
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	Total Sequences	19262864
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	Sequence length	45
+./2infected_CGAGGCTG-CTAAGCCT_L001_R2_001_fastqc	%GC	57
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	Filename	2infected_CGAGGCTG-CTAAGCCT_L001_R1_001.fastq.gz
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	File type	Conventional base calls
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	Encoding	Sanger / Illumina 1.9
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	Total Sequences	19262864
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	Sequences flagged as poor quality	0
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	Sequence length	45
+./2infected_CGAGGCTG-CTAAGCCT_L001_R1_001_fastqc	%GC	56
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	Filename	10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001.fastq.gz
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	File type	Conventional base calls
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	Encoding	Sanger / Illumina 1.9
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	Total Sequences	20974103
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	Sequences flagged as poor quality	0
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	Sequence length	45
+./10uninfected_GTAGAGGA-CTAAGCCT_L001_R2_001_fastqc	%GC	56

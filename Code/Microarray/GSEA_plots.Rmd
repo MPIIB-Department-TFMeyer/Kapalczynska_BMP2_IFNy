@@ -1,0 +1,245 @@
+---
+title: "Microarray Data - H.pylori infection and IFN treatment - GSEA analysis on DGE results - Plots"
+author: "Hilmar Berger"
+output: 
+ html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    number_sections: true
+    code_folding: hide
+    
+pdf_document:
+    fig_caption: true
+date: "`r format(Sys.time(), '%d %B, %Y %H:%M:%S')`"
+---
+
+```{r, warning=FALSE, message=FALSE}
+rm(list=ls())
+
+#suppressMessages(library(xlsx))
+library(ggplot2)
+library(knitr)
+library(scales)
+library(fgsea)
+library(data.table)
+
+source("./fGSEA_plot_functions.R")
+
+root_folder = normalizePath("../../")
+
+result_folder = file.path(root_folder, "Results/Microarray")
+if (!file.exists(result_folder)) dir.create(result_folder, recursive=T)
+
+set.seed(12345)
+```
+
+# Overview
+
+This is data from stomach samples of mouse experiments (H.pylori infection, IFNy treatment) hybridized as dual channel libraries to Agilent 014868 Whole genome mouse 4x44 micro arrays. 
+
+For analysis, a preranked analysis using the R package fGSEA was used that should give similar results to preranked analysis in standard GSEA. 
+
+
+```{r}
+load(file.path(root_folder,"Results/Microarray/DGE_results.Rdata"))
+```
+
+```{r}
+data_generation_date = "2019-08-23"
+output_folder = result_folder
+GSEA_datafile = file.path(output_folder,"fGSEA_Results.Rdata")
+load(GSEA_datafile)
+load(file.path(output_folder, "Geneset_collections.Rdata"))
+```
+
+
+The plots below use differential gene expression data and GSEA results from `r data_generation_date` .
+
+
+# MSigDB gene sets
+
+Since MSigDB gene sets use human gene symbols to map genes to pathways we translated mouse symbols to homologous human symbols using HomologeneDB from NCBI (build 68). 
+
+
+```{r}
+homologene_human_mouse = fread(file.path(root_folder, "Data/External/homologene_9606_10090.txt"))
+all_entrez_ids = data.frame(EntrezID=unique(all_results[[1]]$EntrezID))
+all_symbols = data.frame(GeneSymbol=unique(all_results[[1]]$GeneSymbol))
+a1 = merge(all_symbols, homologene_human_mouse[,c("entrez_1","symbol_1","symbol_2"), with=F], by.x="GeneSymbol", by.y="symbol_2", all.x=T, sort=F)
+
+mouse_to_human=a1
+mouse_to_human = subset(mouse_to_human, !is.na(GeneSymbol) & !is.na(symbol_1) & !symbol_1 == "")
+rownames(mouse_to_human) = mouse_to_human$GeneSymbol
+```
+
+
+# Plots for selected gene sets
+
+## Comparison IFN_vs_ctrl_organoids
+
+
+```{r}
+selected_genesets = c("Lgr5_SC_Signature_Munoz", "Barker_Antral_SC",  "Herbst_et_al_Beta_catenin_targets","LEE_BMP2_TARGETS_DN", "LEE_BMP2_TARGETS_UP")
+```
+
+
+```{r}
+sel_comparison = "IFN_vs_ctrl_organoids"
+```
+
+### Mouse gene sets
+
+```{r}
+tmp = all_results[[sel_comparison]]
+ranks = unlist(tapply(tmp$t, tmp$GeneSymbol, function(x) x[which(abs(x)==max(abs(x)))] ))
+
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  if(nrow(rr)==0) warning(paste0("Gene set ", g, "not found"))
+  loc = unlist(lapply(gset_collections_mouse, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next 
+  sel_genes = unlist(gset_collections_mouse[[names(loc)]][loc])
+  p = myPlotEnrichment(sel_genes, ranks)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+}
+```
+
+
+```{r}
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  if(nrow(rr)==0) warning(paste0("Gene set ", g, "not found"))
+  loc = unlist(lapply(gset_collections_mouse, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next
+  sel_genes = unlist(gset_collections_mouse[[names(loc)]][loc])
+  p = myPlotEnrichment_pdf(sel_genes, ranks, linewidth = 2)
+  pdf(file=file.path(result_folder, paste0(sel_comparison,"_",g, ".pdf")), width=8, height = 6)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+  dev.off()
+}
+```
+
+
+```{r}
+tmp = all_results[[sel_comparison]]
+tmp2 = merge(tmp, mouse_to_human, by="GeneSymbol")
+tmp2 = subset(tmp2, !is.na(symbol_1))
+ranks = unlist(tapply(tmp2$t, tmp2$symbol_1, function(x) x[which(abs(x)==max(abs(x)))] ))
+
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  if(nrow(rr)==0) warning(paste0("Gene set ", g, "not found"))
+  loc = unlist(lapply(gset_collections_human, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next 
+  sel_genes = unlist(gset_collections_human[[names(loc)]][loc])
+  p = myPlotEnrichment(sel_genes, ranks)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+}
+```
+
+```{r}
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  loc = unlist(lapply(gset_collections_human, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next 
+  sel_genes = unlist(gset_collections_human[[names(loc)]][loc])
+  p = myPlotEnrichment_pdf(sel_genes, ranks, linewidth = 2)
+  pdf(file=file.path(result_folder, paste(g, ".pdf")), width=8, height = 6)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+  dev.off()
+}
+```
+
+### PDF export
+
+All plots have been exported to corresponding files in PDF format in folder `r result_folder`.
+
+
+## Comparison Hpy_vs_NI
+
+
+```{r}
+selected_genesets = c("HALLMARK_INTERFERON_GAMMA_RESPONSE")
+```
+
+
+```{r}
+sel_comparison = "Hpy_vs_NI"
+```
+
+### Mouse gene sets
+
+```{r}
+tmp = all_results[[sel_comparison]]
+ranks = unlist(tapply(tmp$t, tmp$GeneSymbol, function(x) x[which(abs(x)==max(abs(x)))] ))
+
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  if(nrow(rr)==0) warning(paste0("Gene set ", g, "not found"))
+  loc = unlist(lapply(gset_collections_mouse, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next
+  sel_genes = unlist(gset_collections_mouse[[names(loc)]][loc])
+  p = myPlotEnrichment(sel_genes, ranks)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+}
+```
+
+```{r}
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  if(nrow(rr)==0) warning(paste0("Gene set ", g, "not found"))
+  loc = unlist(lapply(gset_collections_mouse, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next
+  sel_genes = unlist(gset_collections_mouse[[names(loc)]][loc])
+  p = myPlotEnrichment_pdf(sel_genes, ranks, linewidth = 2)
+  pdf(file=file.path(result_folder, paste0(sel_comparison,"_",g, ".pdf")), width=8, height = 6)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+  dev.off()
+}
+```
+
+
+### Human gene sets
+
+```{r}
+tmp = all_results[[sel_comparison]]
+tmp2 = merge(tmp, mouse_to_human, by="GeneSymbol")
+tmp2 = subset(tmp2, !is.na(symbol_1))
+ranks = unlist(tapply(tmp2$t, tmp2$symbol_1, function(x) x[which(abs(x)==max(abs(x)))] ))
+
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  if(nrow(rr)==0) warning(paste0("Gene set ", g, "not found"))
+  loc = unlist(lapply(gset_collections_human, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next 
+  sel_genes = unlist(gset_collections_human[[names(loc)]][loc])
+  p = myPlotEnrichment(sel_genes, ranks)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+}
+```
+
+```{r}
+for (g in selected_genesets) {
+  rr = subset(all_gsea_results[[sel_comparison]], pathway==g)
+  loc = unlist(lapply(gset_collections_human, function(x) grep(g, names(x))))
+  if(length(loc) == 0) next 
+  sel_genes = unlist(gset_collections_human[[names(loc)]][loc])
+  p = myPlotEnrichment_pdf(sel_genes, ranks, linewidth = 2)
+  pdf(file=file.path(result_folder, paste(g, ".pdf")), width=8, height = 6)
+  print(p + ggtitle(g, paste("FDR=",prettyNum(rr$FDR_global, digits=2),", p=",prettyNum(rr$pval, digits=2), ", ES=",prettyNum(rr$ES, digits=2), ", NES=",prettyNum(rr$NES, digits=2) ) ) )
+  dev.off()
+}
+```
+
+
+### PDF export
+
+All plots have been exported to corresponding files in PDF format in folder `r result_folder`.
+
+
+# Software versions
+
+```{r}
+sessionInfo()
+```

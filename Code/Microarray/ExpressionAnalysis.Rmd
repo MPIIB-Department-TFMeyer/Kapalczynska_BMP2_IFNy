@@ -1,0 +1,127 @@
+---
+title: "Microarray Data - H.pylori infection and IFN treatment - DGE Reanalysis with LIMMA"
+author: "Hilmar Berger"
+output: 
+ html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    number_sections: true
+    code_folding: hide
+    
+pdf_document:
+    fig_caption: true
+date: "`r format(Sys.time(), '%d %B, %Y %H:%M:%S')`"
+---
+
+```{r, echo=FALSE, results='hide', messages=FALSE}
+rm(list=ls())
+suppressMessages(library(limma))
+suppressMessages(library(xlsx))
+suppressMessages(library(pheatmap))
+library(xtable)
+library(reshape2)
+
+root_folder = normalizePath("../../")
+
+result_folder = file.path(root_folder, "Results/Microarray")
+if (!file.exists(result_folder)) dir.create(result_folder, recursive=T)
+
+load(file.path(root_folder, "Data/Processed/Microarray/Micro_array_preprocessed_data.Rdata"))
+```
+
+# Introduction
+
+This is data from a mouse stomach samples of mouse experiments (H.pylori infection, IFNy treatment) hybridized as dual channel libraries to Agilent 014868 Whole genome mouse 4x44 micro arrays. 
+
+
+# DGE
+
+We here use standard two-channel analysis of the microarray data and compare:
+  - gastric epithelial cells from mice infected with H.pylori and controls
+  - IFN treated vs. control epithelial organoids 
+
+```{r}
+all_results = list()
+```
+
+
+```{r}
+controls = MA$genes$ControlType!=0
+
+MA.avg <- avereps(MA[!controls,], ID=MA[!controls,]$genes$ProbeName)
+
+dswp = ed$dye_swap
+cy3_label = ed$Cy3
+cy5_label = ed$Cy5
+scan_id = ed$Chip.Barcode
+ed$array_label = paste(ifelse(dswp, cy3_label, cy5_label), "_",ifelse(dswp,cy5_label, cy3_label),"_",dswp,"_",ed$Scan.ID,sep="")
+
+sel_samples = rownames(subset(ed, Experiment=="IFN"))
+ed_tmp = ed[sel_samples,]
+design = ifelse(ed_tmp$Cy5_treatment=="IFN", 1, -1)
+fit <- lmFit(MA.avg[,sel_samples], design)
+fit <- eBayes(fit)
+res = topTable(fit, adjust = "BH",number=nrow(fit), confint = T)
+ratio_tab = sweep(MA.avg[,sel_samples]$M, 2, design, "*")
+colnames(ratio_tab) = ed_tmp$array_label
+res = merge(res, ratio_tab, all.x=T, by.x="ProbeName", by.y=0, sort=F)
+all_results[["IFN_vs_ctrl_organoids"]] = res
+
+sel_samples = rownames(subset(ed, Experiment=="Infection Antrum"))
+ed_tmp = ed[sel_samples,]
+design = ifelse(ed_tmp$Cy5_infection=="Hpy", 1, -1)
+fit <- lmFit(MA.avg[,sel_samples], design)
+fit <- eBayes(fit)
+res = topTable(fit, adjust = "BH",number=nrow(fit), confint = T)
+ratio_tab = sweep(MA.avg[,sel_samples]$M, 2, design, "*")
+colnames(ratio_tab) = ed_tmp$array_label
+res = merge(res, ratio_tab, all.x=T, by.x="ProbeName", by.y=0, sort=F)
+all_results[["Hpy_vs_NI"]] = res
+
+common_colnames = colnames(topTable(fit, adjust = "BH",number=nrow(fit)))
+```
+
+## Volcano plot
+
+```{r, volcano, echo=FALSE, fig.width=8, fig.height=6}
+all_target_conditions = names(all_results)
+par(mfrow=c(1,2), mar=c(4,4,4,2))
+
+for (tc in all_target_conditions) {
+  r = all_results[[tc]]
+  plot(r$logFC, -log10(r$adj.P.Val),xlab="log2 Fold Change",ylab="-log10(adj. p-val)", ylim=c(0,max(2,max(-log10(r$adj.P.Val),na.rm=T))))
+  title(main=tc, sub=paste("(",nrow(subset(r, adj.P.Val < 0.05))," signif. DE genes)",sep="") )
+  abline(h=-log10(0.05),col="red")
+  abline(v=c(-1,1))
+}
+```
+
+# Data export 
+
+All result files are exported to `r result_folder`.
+
+
+```{r, write_tabs, echo=FALSE}
+output_file_prefix = paste(result_folder,"Differential_expression_results_", sep="/")
+selected_cols = c("ProbeName", "GeneSymbol", "GeneName","EntrezID","GeneSymbol_Gencode","GencodeM12MappingStatus","Transcript_Type","logFC","AveExpr","t","P.Value","adj.P.Val" )
+
+for (tc in all_target_conditions) {
+  #write.table(all_results[[tc]][,selected_cols], file=paste(output_file_prefix, tc, ".txt", sep="" ), row.names=F , sep="\t", dec=".")
+  write.table(all_results[[tc]], file=paste(output_file_prefix, tc, ".txt", sep="" ), row.names=F , sep="\t", dec=".")
+}
+
+```
+
+
+```{r}
+filename = paste(result_folder,"DGE_results.Rdata",sep="/")
+exp_design = ed
+save(all_results, exp_design, MA,file=filename)
+```
+
+
+# Session Info
+```{r}
+sessionInfo()
+```
