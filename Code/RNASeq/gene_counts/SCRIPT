@@ -1,0 +1,15 @@
+# This script requires HTseq (https://pypi.org/project/HTSeq/) to be installed
+# htseq-count version v0.9.1 was used
+
+SAMPLES=$(ls ../../../Data/Processed/MappedReads/*_sorted.bam)
+REF_GTF=/data_genome2/References/MusMusculus/Annotation/Genes/Mus_musculus.GRCm38.76.gtf
+OUTPUT_FOLDER=../../../Data/Processed/Counts
+
+function run_htseq { s=$1;sample_name=$(basename $s .bam); (htseq-count -f 'bam' -s 'no' -r 'pos' $s $REF_GTF > $OUTPUT_FOLDER/${sample_name}.counts) &> $OUTPUT_FOLDER/${sample_name}.log; }
+
+export REF_GTF
+export OUTPUT_FOLDER
+export -f run_htseq
+
+echo $SAMPLES | sed -e 's/ /\n/g' | parallel -t -j 12 run_htseq
+

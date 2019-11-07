@@ -1,0 +1,322 @@
+---
+title: "RNASeq Analysis using DESeq for DGE"
+author: "Hilmar Berger"
+output: 
+ html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    number_sections: true
+    code_folding: hide
+    
+pdf_document:
+    fig_caption: true
+date: "`r format(Sys.time(), '%d %B, %Y %H:%M:%S')`"
+---
+
+```{r, echo=FALSE, results='hide', messages=FALSE}
+rm(list=ls())
+library(limma)
+suppressMessages(library(xlsx))
+library(reshape2)
+library(pheatmap)
+library(xtable)
+suppressMessages(library(gplots))
+suppressMessages(library(DESeq2))
+suppressMessages(library(org.Mm.eg.db))
+suppressMessages(library(AnnotationDbi))
+suppressMessages(library(data.table))
+library(gplots)
+
+count_data_file = file.path("../../../Data/Processed/Counts_R/", "Myofibroblast_counts.Rdata")
+ASSEMBLE_TAB=FALSE
+if(ASSEMBLE_TAB) {
+  counts_path = "../../../Data/Processed/Counts/"
+  count_files = list.files(path=counts_path, pattern="*.counts")
+  sample_names = gsub("_sorted.counts","",count_files)
+  files = list()
+  for (i in 1:length(count_files)) {
+    files[[sample_names[i]]] = file.path(counts_path, count_files[i])
+  }
+  cnt_tab = NULL
+  for (f in names(files)) {
+    d = read.table(files[[f]],header=F, sep="\t")
+    if (is.null(cnt_tab)) {
+      cnt_tab = d
+      colnames(cnt_tab) = c("EnsemblGeneID",f)
+    } else {
+      colnames(d)[2] = f
+      cnt_tab = merge(cnt_tab, d, by.x="EnsemblGeneID",by.y="V1",all.x=T,sort=F)
+    }
+  }
+  count_mat = cnt_tab[,2:ncol(cnt_tab)]
+  rownames(count_mat) = cnt_tab[,1]
+  
+  symbols=select(org.Mm.eg.db, keys=rownames(count_mat[substr(rownames(count_mat),1,1)!="_",]), columns=c("SYMBOL","GENENAME"),keytype="ENSEMBL")
+  sym_df = data.frame(SYMBOL=symbols[["SYMBOL"]], EnsGeneID=symbols[["ENSEMBL"]], stringsAsFactors=F)
+  name_df = data.frame(GENENAME=symbols[["GENENAME"]], EnsGeneID=symbols[["ENSEMBL"]], stringsAsFactors=F)
+  
+  SYMBOL = as.data.frame(tapply(sym_df$SYMBOL, sym_df$EnsGeneID, paste, collapse=","))
+  colnames(SYMBOL)="GeneSymbol"
+  GeneName = as.data.frame(tapply(name_df$GENENAME, name_df$EnsGeneID, paste, collapse=","))
+  colnames(GeneName) = "GeneName"
+  anno = merge(SYMBOL, GeneName, by=0, sort=F)
+  
+  
+  save(count_mat, anno, file=count_data_file)
+} else {
+  load(count_data_file)  
+}
+
+ed = read.xlsx("../../../Data/Metadata/RNASeq/SampleSheet.xls", sheetIndex = 1)
+rownames(ed) = ed$ID
+ed$Short = paste(ed$H.pylori.infection, ed$name.of.sample,sep="_")
+sample_ordered = as.character(ed$ID)
+colnames(count_mat) = paste("Sample_", colnames(count_mat), sep="")
+
+result_folder = "../../../Results/RNASeq"
+if (!file.exists(result_folder)) dir.create(result_folder, recursive=T)
+
+```
+
+# Data overview
+
+This analysis is based on gene counts derived from the 2x45bp PE sequencing run.
+
+## Samples 
+```{r, echo=FALSE, results='asis', warning=FALSE}
+sel_columns = c("ID","name.of.sample","H.pylori.infection","Short")
+print.xtable(xtable(ed[, sel_columns], display=rep("s", length(sel_columns)+1), align=rep("l|", length(sel_columns)+1)), type="html", file="" , include.rownames=F)
+```
+
+## Quality control
+
+### Distribution of expression levels
+
+```{r, boxplots, echo=FALSE, fig.width=8, fig.height=8, eval=TRUE}
+boxplot(log10(count_mat+1),las=2, ylab="expression level (log10(count+1))", main="Expression levels across samples")
+```
+
+```{r, densities, echo=FALSE, fig.width=8, fig.height=8, eval=TRUE}
+par(cex=0.8)
+cp = rainbow(6)
+plotDensities(log2(count_mat+1), legend="topright", group=ed[colnames(count_mat),"ExpID"], col=cp)
+title("Density distributions of log2(Read Count+1) per sample")
+```
+
+### Total mapped read numbers per sample
+
+```{r, readnum, echo=FALSE, fig.width=8, fig.height=8, eval=TRUE}
+par(mar=c(5,10,4,2))
+barplot(apply(count_mat,2,sum),las=2, ylab="Log10(Total mapped read number)", main="Total read number")
+apply(count_mat,2,sum)
+```
+
+
+```{r}
+#included_genes = (apply(count_mat,1,max) > 1) & (substr(rownames(count_mat),1,1)!="_")
+included_genes = T
+included_samples = rownames(ed)
+
+dds_paired <- DESeqDataSetFromMatrix(countData = count_mat[included_genes,included_samples],
+                              colData = ed[colnames(count_mat[,included_samples]),],
+                              design = ~ H.pylori.infection)
+dds_paired$H.pylori.infection <- factor(dds_paired$H.pylori.infection, levels=c("infected","uninfected"))
+
+expr_mat = assay(vst(dds_paired))
+
+```
+
+
+## Sample correlation
+
+```{r, cor_mat, echo=FALSE, fig.width=8, fig.height=8}
+
+cor_mat = cor(expr_mat, method="spearman")
+cor_mat = cor_mat[sample_ordered, sample_ordered]
+# pheatmap(cor_mat, scale="none")
+
+cor_mat2 = cor_mat
+rownames(cor_mat2) = paste(ed[rownames(cor_mat2),]$Short, rownames(cor_mat2),sep=" - ")
+colnames(cor_mat2) = ed[colnames(cor_mat2),]$Short
+pheatmap(cor_mat2,scale="none", cluster_rows=F, cluster_cols=F )
+
+```
+
+## Multi Dimensional Scaling on all genes
+### All samples
+
+```{r, MDS_all, echo=FALSE, fig.width=8, fig.height=8}
+cp = palette(rainbow(3))
+data_inp = t(expr_mat) 
+
+d <- dist(data_inp) # euclidean distances between the rows
+fit <- cmdscale(d,eig=TRUE, k=2) # k is the number of dim
+
+# plot solution
+x <- fit$points[,1]
+y <- fit$points[,2]
+plot(x, y, xlab="Coordinate 1", ylab="Coordinate 2", main="Metric MDS, all samples", type="n")
+text(x,y,labels=ed[rownames(data_inp),]$Short, col=cp[as.numeric(factor(ed[rownames(data_inp),]$H.pylori.infection))])
+```
+
+### Samples without outliers
+
+```{r, MDS_wo_outliers, echo=FALSE, fig.width=8, fig.height=8}
+cp = palette(rainbow(3))
+data_inp = t(expr_mat[, !colnames(expr_mat) %in% c("Sample_11infected","Sample_14uninfected")]) 
+
+d <- dist(data_inp) # euclidean distances between the rows
+fit <- cmdscale(d,eig=TRUE, k=2) # k is the number of dim
+
+# plot solution
+x <- fit$points[,1]
+y <- fit$points[,2]
+plot(x, y, xlab="Coordinate 1", ylab="Coordinate 2", main="Metric MDS, all samples", type="n")
+text(x,y,labels=ed[rownames(data_inp),]$Short, col=cp[as.numeric(factor(ed[rownames(data_inp),]$H.pylori.infection))])
+```
+
+# Differential Expression Analysis
+
+We compare conditions the following conditions using DESeq2 with standard settings:
+
+- infected vs. uninfected samples
+- infected vs. uninfected samples without outlier-samples 11 and 14
+
+```{r, dge_analysis, echo=FALSE, results='hide'}
+
+included_genes = (apply(count_mat,1,max) > 1) & (substr(rownames(count_mat),1,1)!="_")
+
+all_results = list()
+
+
+############################################
+# All samples
+############################################
+
+included_samples = rownames(ed)
+
+dds_paired <- DESeqDataSetFromMatrix(countData = count_mat[included_genes,included_samples],
+                              colData = ed[colnames(count_mat[,included_samples]),],
+                              design = ~ H.pylori.infection)
+dds_paired$H.pylori.infection <- factor(dds_paired$H.pylori.infection, levels=c("infected","uninfected"))
+dds_paired <- DESeq(dds_paired, fitType="local")
+
+res <- results(dds_paired, contrast=c("H.pylori.infection","infected","uninfected"))
+
+all_results[["infected_vs_uninfected"]] = res
+
+
+############################################
+# Excluding samples 11 and 14
+############################################
+
+included_samples = rownames(subset(ed,! name.of.sample %in% c(11,14)))
+
+dds_paired <- DESeqDataSetFromMatrix(countData = count_mat[included_genes,included_samples],
+                              colData = ed[colnames(count_mat[,included_samples]),],
+                              design = ~ H.pylori.infection)
+dds_paired$H.pylori.infection <- factor(dds_paired$H.pylori.infection, levels=c("infected","uninfected"))
+dds_paired <- DESeq(dds_paired, fitType="local")
+
+res <- results(dds_paired, contrast=c("H.pylori.infection","infected","uninfected"))
+
+all_results[["infected_vs_uninfected_6mice"]] = res
+
+
+############################################################################################
+for (n in names(all_results)) {
+  tmp = all_results[[n]]
+  resOrdered <- data.frame(tmp[order(tmp$pvalue),])
+  resOrdered$padj = ifelse(is.na(resOrdered$padj),1,resOrdered$padj)
+  res_annotated = as.data.frame(merge(resOrdered, anno, by.x=0, by.y="Row.names", sort=F))
+  res_annotated = merge(res_annotated, count_mat, by.x="Row.names",by.y=0, all.x=T, sort=F)
+  all_results[[n]] = res_annotated
+}
+
+```
+
+### Volcano plots
+
+For each comparison, the distribution of the fold change (on a log2 scale) and adjusted p-value (on reverse logarithmical scale) is shown in a volcano plot. The red line denotes the FDR cutoff of 0.05. 
+
+```{r, DE_volcano, echo=FALSE, results="hide", fig.width=16,fig.height = 10 }
+all_target_conditions = names(all_results)
+par(mfrow=c(1,2))
+all_GSA_results = list()
+for (tc in all_target_conditions) {
+  r = all_results[[tc]]
+  plot(r$log2FoldChange, -log10(r$padj),xlab="log2 Fold Change",ylab="-log10(adj. p-val)", ylim=c(0,max(2,max(-log10(r$padj),na.rm=T))))
+  title(main=tc, sub=paste("(",nrow(subset(r, padj < 0.05))," signif. DE genes)",sep="") )
+  abline(h=-log10(0.05),col="red")
+  
+}
+```
+
+
+
+```{r, DE_combined, echo=FALSE, results="hide"}
+all_DE_results_tmp = list()
+for (tc in all_target_conditions) {
+  tmp = all_results[[tc]]
+  tmp$condition = tc
+  all_DE_results_tmp[[tc]] = tmp
+}
+all_DE_results_ts = do.call(rbind, all_DE_results_tmp)
+all_DE_results_ts$DE_class = ifelse(all_DE_results_ts$padj>0.05, "n.s.", ifelse(all_DE_results_ts$log2FoldChange > 0,"Up","Down"))
+#agg_fun = function(x) paste(unique(x),collapse=";")
+agg_fun = function(x) ifelse("Down" %in% x, "Down",ifelse("Up" %in% x, "Up","n.s."))
+all_DE_results_sw = dcast(all_DE_results_ts, GeneSymbol ~ condition, value.var="DE_class", fun.aggregate=agg_fun)
+```
+
+
+```{r, echo=FALSE}
+all_output_txt_files = list()
+all_output_excel_files = list()
+output_file_prefix = paste(result_folder,"Differential_expression_results_", sep="/")
+#selected_cols = c("Row.names", "GeneSymbol", "GeneDescription","logFC","AveExpr","t","P.Value","adj.P.Val" )
+selected_cols = colnames(all_results[[1]])
+for (tc in all_target_conditions) {
+  filename = paste(output_file_prefix, tc, ".txt", sep="" )
+  write.table(all_results[[tc]][,selected_cols], file= filename, row.names=F , sep="\t", dec=".", quote=F)
+  all_output_txt_files[[paste("DGE",tc)]] = filename
+}
+
+
+filename = paste(result_folder,"DE_results_comparison.txt",sep="/")
+write.table(all_DE_results_sw, file = filename,sep="\t",quote=F, row.names=F)
+all_output_txt_files[["DGE comparison"]] = filename
+
+tmp = as.data.frame(assay(varianceStabilizingTransformation(dds_paired, blind=FALSE)))
+#colnames(tmp) = ed[colnames(tmp),]$Sample
+#rownames(tmp) = normalized$genes$ProbeName
+tmp = merge(tmp, anno, by.x=0, by.y="Row.names", all.x=T, sort=F)
+filename = paste(result_folder,"Normalized_expression_data.txt",sep="/")
+write.table(tmp, file=filename,sep="\t",col.names=NA, quote=F)
+
+all_output_txt_files[["Normalized expression values"]] = filename
+
+```
+
+
+# Result files
+
+The following files have been written:
+```{r, echo=FALSE}
+output_file = paste(result_folder,"DGE_analysis_image.Rdata", sep="/")
+save(all_results, count_mat, ed, anno, file=output_file)
+
+all_txt_files = as.data.frame(t(as.data.frame(all_output_txt_files)))
+colnames(all_txt_files)[1] = "File name"
+all_txt_files$Format = "Tab separated text"
+
+all_txt_files
+
+```
+
+# Software versions
+
+```{r}
+sessionInfo()
+```
+

@@ -1,0 +1,192 @@
+---
+title: "DGE Visualizations"
+author: "Hilmar Berger"
+output: 
+ html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    number_sections: true
+    code_folding: hide
+    
+pdf_document:
+    fig_caption: true
+date: "`r format(Sys.time(), '%d %B, %Y %H:%M:%S')`"
+---
+
+```{r, results='hide', messages=FALSE}
+rm(list=ls())
+library(xlsx)
+library(reshape2)
+library(pheatmap)
+library(xtable)
+library(impute)
+suppressMessages(library(DESeq2))
+suppressMessages(library(data.table))
+```
+
+```{r}
+count_data_file = file.path("../../../Data/Processed/Counts_R/", "Myofibroblast_counts.Rdata")
+load(count_data_file)
+
+ed = read.xlsx("../../../Data/Metadata/RNASeq/SampleSheet.xls", sheetIndex = 1)
+rownames(ed) = ed$ID
+ed$Short = paste(ed$H.pylori.infection, ed$name.of.sample,sep="_")
+sample_ordered = as.character(ed$ID)
+colnames(count_mat) = paste("Sample_", colnames(count_mat), sep="")
+
+result_folder = "../../../Results/RNASeq"
+if (!file.exists(result_folder)) dir.create(result_folder, recursive=T)
+
+```
+
+```{r}
+load(file.path(result_folder, "DGE_analysis_image.Rdata"))
+```
+
+```{r}
+included_genes = T
+included_samples = rownames(ed)
+
+dds_paired <- DESeqDataSetFromMatrix(countData = count_mat[included_genes,included_samples],
+                              colData = ed[colnames(count_mat[,included_samples]),],
+                              design = ~ H.pylori.infection)
+dds_paired$H.pylori.infection <- factor(dds_paired$H.pylori.infection, levels=c("infected","uninfected"))
+
+expr_mat = assay(vst(dds_paired))
+
+```
+
+
+# Heatmaps of differentially expressed genes
+
+## DGE from all samples (4 vs. 4)
+
+```{r, hm_normalized, fig.width=16, fig.height = 14 }
+
+included_samples = rownames(ed)
+
+dds_paired <- DESeqDataSetFromMatrix(countData = count_mat[included_genes,included_samples],
+                              colData = ed[colnames(count_mat[,included_samples]),],
+                              design = ~ H.pylori.infection)
+
+mm = assay(varianceStabilizingTransformation(dds_paired, blind=FALSE))
+
+sig_deg = subset(all_results[["infected_vs_uninfected"]], padj < 0.1)
+
+all_sig = sig_deg
+all_sig$comparison = "Inf_vs_NI"
+all_sig_uniq = dcast(all_sig, Row.names ~ ., value.var="comparison", fun.aggregate=paste, collapse=",")
+all_sig_uniq$class = ifelse(grepl(",",all_sig_uniq$.), "both",all_sig_uniq$.)
+
+mm_sig = mm[as.character(all_sig_uniq$Row.names),]
+row_anno = data.frame(Comparison=all_sig_uniq$class)
+rownames(row_anno) = all_sig_uniq$Row.names
+mm_sig_ordered = mm_sig[order(row_anno[rownames(mm_sig),"Comparison"]),  ]
+breaks_new = c(-5, seq(-1,1,2/98), 5)
+col_anno = data.frame(Phenotype=ed[colnames(mm_sig_ordered),"H.pylori.infection"])
+rownames(col_anno) = rownames(ed[colnames(mm_sig_ordered),])
+rownames(anno) = anno$Row.names
+pheatmap(mm_sig_ordered, scale="row", annotation_row = row_anno, cluster_rows = T, breaks=breaks_new, show_rownames = T, annotation_col = col_anno, labels_row = anno[rownames(mm_sig_ordered),"GeneSymbol"])
+
+```
+
+## DGE without outlier samples (3 vs. 3)
+
+### All DGE genes
+
+<!-- ### All samples -->
+
+<!-- ```{r, hm_normalized2, fig.width=14, fig.height = 20 } -->
+<!-- sig_deg = subset(all_results[["infected_vs_uninfected_6mice"]], padj < 0.05) -->
+
+<!-- all_sig = sig_deg -->
+<!-- all_sig$comparison = "Inf_vs_NI" -->
+<!-- all_sig_uniq = dcast(all_sig, Row.names ~ ., value.var="comparison", fun.aggregate=paste, collapse=",") -->
+<!-- all_sig_uniq$class = ifelse(grepl(",",all_sig_uniq$.), "both",all_sig_uniq$.) -->
+
+<!-- mm_sig = mm[as.character(all_sig_uniq$Row.names),] -->
+<!-- row_anno = data.frame(Comparison=all_sig_uniq$class) -->
+<!-- rownames(row_anno) = all_sig_uniq$Row.names -->
+<!-- mm_sig_ordered = mm_sig[order(row_anno[rownames(mm_sig),"Comparison"]),  ] -->
+<!-- breaks_new = c(-5, seq(-1,1,2/98), 5) -->
+<!-- col_anno = data.frame(Phenotype=ed[colnames(mm_sig_ordered),"H.pylori.infection"]) -->
+<!-- rownames(col_anno) = rownames(ed[colnames(mm_sig_ordered),]) -->
+<!-- rownames(anno) = anno$Row.names -->
+<!-- pheatmap(mm_sig_ordered, scale="row", annotation_row = row_anno, cluster_rows = T, breaks=breaks_new, show_rownames = T, annotation_col = col_anno, labels_row = anno[rownames(mm_sig_ordered),"GeneSymbol"], main="Excluding patient 11 and 14", fontsize_row = 9) -->
+
+<!-- ``` -->
+
+<!-- #### 3+3 samples -->
+
+```{r, hm_normalized3, results="hide", fig.width=14,fig.height = 20 }
+sig_deg = subset(all_results[["infected_vs_uninfected_6mice"]], padj < 0.05)
+
+all_sig = sig_deg
+all_sig$comparison = "Inf_vs_NI"
+all_sig_uniq = dcast(all_sig, Row.names ~ ., value.var="comparison", fun.aggregate=paste, collapse=",")
+all_sig_uniq$class = ifelse(grepl(",",all_sig_uniq$.), "both",all_sig_uniq$.)
+
+included_samples = rownames(subset(ed,! name.of.sample %in% c(11,14)))
+
+mm_sig = mm[as.character(all_sig_uniq$Row.names), colnames(mm) %in% included_samples]
+row_anno = data.frame(Comparison=all_sig_uniq$class)
+rownames(row_anno) = all_sig_uniq$Row.names
+mm_sig_ordered = mm_sig[order(row_anno[rownames(mm_sig),"Comparison"]),  ]
+breaks_new = c(-5, seq(-1,1,2/98), 5)
+col_anno = data.frame(Phenotype=ed[colnames(mm_sig_ordered),"H.pylori.infection"])
+rownames(col_anno) = rownames(ed[colnames(mm_sig_ordered),])
+rownames(anno) = anno$Row.names
+pheatmap(mm_sig_ordered, scale="row", annotation_row = row_anno, cluster_rows = T, breaks=breaks_new, show_rownames = T, annotation_col = col_anno, labels_row = anno[rownames(mm_sig_ordered),"GeneSymbol"], main="Excluding mouse samples 11 and 14", fontsize_row = 9)
+
+```
+
+```{r}
+ofile = file.path(result_folder, "Heatmap_DGE_without_outliers.pdf")
+pdf(file=ofile, width = 14, height = 20)
+pheatmap(mm_sig_ordered, scale="row", cluster_rows = T, breaks=breaks_new, show_rownames = T, annotation_col = col_anno, labels_row = anno[rownames(mm_sig_ordered),"GeneSymbol"], main="Excluding mouse sample 11 and 14", fontsize_row = 8, fontsize_col = 22)
+dev.off()
+
+```
+
+Heatmap has been written to file `r ofile` .
+
+## Selected genes
+
+```{r, fig.width=14,fig.height = 20}
+sel_genes = unlist(strsplit("Grem1 Bambi Chrdl1 Crim1 Bmp1 Bmp2 Bmp3 Bmp4 Bmp5 Bmp6 Bmp7 Id1 Id2"," "))
+
+#sig_deg = subset(all_results[["infected_vs_uninfected_6mice"]], padj < 0.05)
+
+all_sig = sig_deg
+all_sig$comparison = "Inf_vs_NI"
+all_sig_uniq = dcast(all_sig, Row.names ~ ., value.var="comparison", fun.aggregate=paste, collapse=",")
+all_sig_uniq$class = ifelse(grepl(",",all_sig_uniq$.), "both",all_sig_uniq$.)
+
+included_samples = rownames(subset(ed,! name.of.sample %in% c(11,14)))
+
+sel_probes = subset(anno, GeneSymbol %in% c(sel_genes))
+
+mm_sig = mm[as.character(sel_probes$Row.names), colnames(mm) %in% included_samples]
+row_anno = data.frame(Comparison=all_sig_uniq$class)
+rownames(row_anno) = all_sig_uniq$Row.names
+
+gs2e = tapply(anno$Row.names, anno$GeneSymbol, function(x) paste(sort(unique(x)), collapse=","))
+mm_sig_ordered = mm_sig[gs2e[sel_genes], ]
+breaks_new = c(-5, seq(-1,1,2/98), 5)
+col_anno = data.frame(Phenotype=ed[colnames(mm_sig_ordered),"H.pylori.infection"])
+rownames(col_anno) = rownames(ed[colnames(mm_sig_ordered),])
+rownames(anno) = anno$Row.names
+
+pheatmap(mm_sig_ordered, scale="row", annotation_row = row_anno, cluster_rows = F, breaks=breaks_new, show_rownames = T, annotation_col = col_anno, labels_row = anno[rownames(mm_sig_ordered),"GeneSymbol"], main="Excluding mouse sample 11 and 14", fontsize_row = 22, fontsize_col = 22)
+```
+
+```{r}
+ofile = file.path(result_folder, "Heatmap_BMP_ligands_and_inhib.pdf")
+pdf(file=ofile, width = 6, height = 8)
+pheatmap(mm_sig_ordered, scale="row", cluster_rows = T, breaks=breaks_new, show_rownames = T, annotation_col = col_anno, labels_row = anno[rownames(mm_sig_ordered),"GeneSymbol"], main="Excluding mouse sample 11 and 14", fontsize_row = 22, fontsize_col = 22)
+dev.off()
+
+```
+
+Heatmap has been written to file `r ofile` .

@@ -1,0 +1,2 @@
+/data_genome1/SharedSoftware/star/STAR_v2.4 --runMode genomeGenerate --genomeDir /data_genome1/References/GenomeIndices/MusMusculus/STAR_v2.4 --sjdbGTFfile /data/References/MusMusculus/Annotation/Genes/Mus_musculus.GRCm38.76.gtf --genomeFastaFiles /data/References/MusMusculus/Sequences/Genome/GRCm38_Ensembl/Mus_musculus.GRCm38.dna.primary_assembly_fixed_chr.fa --runThreadN 8
+
