@@ -1,0 +1,19 @@
+Data files required for analysis are provided in Data folder and referenced from R scripts in Code/...
+
+Fig 1e and 1f:
+- RNASeq sequences from Myh11 marked myofibroblasts were mapped to mouse genome version GRCm38 (Code/RNASeq/mapping/align.sh) and reads per gene counted
+  using htseq_count according to Code/RNASeq/gene_counts/script
+- Differential gene expression was calculated according to script Code/RNASeq/differential_gene_expression/DiffGE_RNASeq.html
+- Heatmaps were generated using code in DGE_Visualizations.Rmd
+- Figures are in Results/RNASeq [Heatmap_DGE_without_outliers.pdf, Heatmap_BMP_ligands_and_inhib.pdf]
+
+Fig 6d, 6i. 6j:
+- Microarray data was preprocessed according to Code/Microarray/Preprocess_raw_files.Rmd
+- Differential gene expression was calculated according to script Code/Microarray/ExpressionAnalysis.Rmd
+- GSEA was run on DGE results using script Code/Microarray/GSEA_Analaysis.Rmd and GSEA plots were generated using Code/Microarray/GSEA_plots.Rmd
+- Figures are in Results/Microarray [HALLMARK_INTERFERON_GAMMA_RESPONSE .pdf, LEE_BMP2_TARGETS_UP .pdf, LEE_BMP2_TARGETS_DN .pdf]
+
+
+
+
+
